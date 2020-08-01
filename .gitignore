@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.vscode
+basic_app.sqlite
+environment/
+trash/
+filestore/
