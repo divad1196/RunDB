@@ -1,6 +1,7 @@
 from .tools.path import PathType, PathTypeList, ensure_path, ensure_path_list, ensure_valide_name, ensure_json_file
 from .tools.serialization import json_load, json_dump, default_anonymous_key, default_serializer, default_deserializer
 from typing import Callable, Optional
+from .relational import One2many
 
 class Table:
     def __init__(
@@ -17,9 +18,36 @@ class Table:
         self._data = []
         self._load()
         self._autodump = autodump
-        self._serializer = serializer
-        self._deserializer = deserializer
+        self.set_serializer(serializer)
+        self.set_deserializer(deserializer)
         self._anonymous_key = anonymous
+
+    def One2many(self, table, keys=[]):
+        return One2many(self, keys=keys)
+        
+    def update_config(self, **kwargs):
+        autodump = kwargs.get("autodump")
+
+        if autodump:
+            self._autodump = autodump
+        serializer = kwargs.get("serializer")
+
+        if serializer:
+            self._serializer = serializer
+        deserializer = kwargs.get("deserializer")
+
+        if deserializer:
+            self._deserializer = deserializer
+        anonymous = kwargs.get("anonymous")
+
+        if anonymous:
+            self._anonymous_key = anonymous
+
+    def set_serializer(self, func: Callable):
+        self._serializer = func
+
+    def set_deserializer(self, func: Callable):
+        self._deserializer = func
 
     def _ensure_table(self):
         ensure_json_file(self._path)
@@ -79,6 +107,12 @@ class Table:
 
     def items(self):
         return self._data.items()
+
+    def update(self, condition: Optional[Callable] = None, kwargs: dict = {}):
+        data = self.filter(condition)
+        for d in data:
+            if isinstance(d, dict):
+                d.update(kwargs)
 
     def filter(self, condition: Optional[Callable] = None):
         data = {}

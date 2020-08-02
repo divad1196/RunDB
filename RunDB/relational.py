@@ -1,10 +1,10 @@
 
 
 class One2many:
-    def __init__(self, table, database=None):
+    def __init__(self, table, database=None, keys=[]):
         self._table = table
         self._db = database
-        self._keys = []
+        self._keys = keys
 
     def _get_table(self):
         if isinstance(self._table, str):
@@ -37,8 +37,23 @@ class One2many:
             keys=self._keys,
         )
 
-    def all(self):
-        data = {}
-        for k in self:
-            data[k] = self[k]
-        return data
+    def keys(self):
+        return self._keys
+
+    def list(self):
+        return [
+            self[k]
+            for k in self
+        ]
+
+    def dict(self):
+        return {
+            k: self[k]
+            for k in self
+        }
+
+
+# class Many2many(One2many):
+#     def __init__(self, table, relation, database=None, keys=[]):
+#         self._relation = relation
+#         super(Many2many, self).__init__(table, database, keys)

@@ -1,5 +1,6 @@
 from .tools.path import PathType, PathTypeList, ensure_path, ensure_path_list, ensure_valide_name, ensure_dir, json_ext
 from .table import Table
+from .relational import One2many
 import os
 
 class Database:
@@ -10,11 +11,14 @@ class Database:
         self._autodump = autodump
         self._load()
     
+    def One2many(self, table, keys=[]):
+        return One2many(table, self, keys=keys)
+
     def list_tables(self):
         return list(self.keys())
 
-    def table(self, name):
-        return self.get_or_create_table(name)
+    def table(self, name, **kwargs):
+        return self.get_or_create_table(name, **kwargs)
 
     def register(self, key, table: Table):
         if key in self._tables:
@@ -23,14 +27,16 @@ class Database:
             ))
         self._tables[key] = table
 
-    def get_or_create_table(self, name):
+    def get_or_create_table(self, name, **kwargs):
         ensure_valide_name(name)
         table = self._tables.get(name)
         if table is not None:
+            if kwargs:
+                table.update_config(**kwargs)
             return table
-        return self._create_table(name)
+        return self._create_table(name, **kwargs)
 
-    def _create_table(self, name):
+    def _create_table(self, name, **kwargs):
         ensure_valide_name(name)
         if name in self._tables:
             raise Exception("Table {name} already exists".format(
@@ -39,7 +45,11 @@ class Database:
         self._ensure_database()
         filename = json_ext(name)
         table_path = self._path.joinpath(filename)
-        table = Table(table_path, autodump=self._autodump)
+
+        kwargs.pop("path", None)
+        kwargs.setdefault("autodump", self._autodump)
+
+        table = Table(table_path, **kwargs)
         self._tables[name] = table
         return table
 
@@ -55,6 +65,7 @@ class Database:
         self._load()
 
     def _load(self):
+        self._ensure_database()
         files = self._list_table_files()
         for f in files:
             self._create_table(f.stem)
@@ -69,7 +80,7 @@ class Database:
 
     def _dump(self):
         self._ensure_database()
-        for table in self._tables:
+        for table in self._tables.values():
             table._dump()
 
     def __bool__(self):

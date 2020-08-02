@@ -72,7 +72,11 @@ This will create 3 folders
 
 ## Upload on pip
 
-upload with `python3 -m twine upload dist/*`
+upload with 
+
+```bash
+python3 -m twine upload dist/*
+```
 
 
 
