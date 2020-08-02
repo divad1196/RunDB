@@ -1,16 +1,14 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-
 setuptools.setup(
     name='rundb',  
     version='0.1',
     author="Gallay David",
     author_email="davidtennis96@hotmail.com",
     description="A pseudo NoSQL database",
-    long_description=long_description,
+    setup_requires=['setuptools-markdown'],
     long_description_content_type="text/markdown",
+    long_description_markdown_filename='README.md',
     url="https://github.com/divad1196/RunDB",
     packages=setuptools.find_packages(),
     classifiers=[
