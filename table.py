@@ -91,3 +91,6 @@ class Table:
 
     def filter_values(self, condition: Optional[Callable] = None):
         return filter(condition, self.values())
+    
+    def update_key(self, old_key, new_key):
+        self._data[new_key] = self._data

@@ -16,6 +16,13 @@ class Database:
     def table(self, name):
         return self.get_or_create_table(name)
 
+    def register(self, key, table: Table):
+        if key in self._tables:
+            raise Exception("A table is already register under key '{key}'".format(
+                key=key
+            ))
+        self._tables[key] = table
+
     def get_or_create_table(self, name):
         ensure_valide_name(name)
         table = self._tables.get(name)
