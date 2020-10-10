@@ -1,4 +1,4 @@
-
+# from .record import Record
 
 class One2many:
     def __init__(self, table, database=None, keys=[]):

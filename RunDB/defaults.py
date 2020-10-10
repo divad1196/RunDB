@@ -1,0 +1,1 @@
+_sentinelle = object()
