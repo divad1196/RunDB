@@ -7,6 +7,16 @@ The main point of this library is to help the user on storing and loading data.
 
 
 
+## Installation
+
+[Pypi Package](https://pypi.org/project/rundb/)
+
+```bash
+pip3 install rundb
+```
+
+
+
 ## Philosophy
 
 * NoSql with tools to simulate relational
