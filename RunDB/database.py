@@ -1,24 +1,21 @@
 from .tools.path import PathType, PathTypeList, ensure_path, ensure_path_list, ensure_valide_name, ensure_dir, json_ext
 from .table import Table
-from .relational import One2many
 import os
 
+# Store DB informations into a json file?
+
 class Database:
-    def __init__(self, database: PathType, autodump = False):
+    def __init__(self, database: PathType):
         db_path = ensure_path(database)
         self._path = db_path
         self._tables = {}
-        self._autodump = autodump
-        self._load()
-    
-    def One2many(self, table, keys=[]):
-        return One2many(table, self, keys=keys)
+        # self._load()  # conflicts with table definitions
 
     def list_tables(self):
         return list(self.keys())
 
-    def table(self, name, **kwargs):
-        return self.get_or_create_table(name, **kwargs)
+    def table(self, name, **kw):
+        return self.get_or_create_table(name, **kw)
 
     def register(self, key, table: Table):
         if key in self._tables:
@@ -27,14 +24,12 @@ class Database:
             ))
         self._tables[key] = table
 
-    def get_or_create_table(self, name, **kwargs):
+    def get_or_create_table(self, name, **kw):
         ensure_valide_name(name)
         table = self._tables.get(name)
         if table is not None:
-            if kwargs:
-                table.update_config(**kwargs)
             return table
-        return self._create_table(name, **kwargs)
+        return self._create_table(name, **kw)
 
     def _create_table(self, name, **kwargs):
         ensure_valide_name(name)
@@ -47,9 +42,8 @@ class Database:
         table_path = self._path.joinpath(filename)
 
         kwargs.pop("path", None)
-        kwargs.setdefault("autodump", self._autodump)
 
-        table = Table(table_path, **kwargs)
+        table = Table(table_path, database=self, **kwargs)
         self._tables[name] = table
         return table
 

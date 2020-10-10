@@ -1,15 +1,27 @@
-
+from . import record
+from copy import deepcopy
 
 class One2many:
-    def __init__(self, table, database=None, keys=[]):
+    def __init__(self, keys, table, database=None):
         self._table = table
         self._db = database
         self._keys = keys
+        self._ensure_set()
 
     def _get_table(self):
         if isinstance(self._table, str):
             self._table = self._db[self._table]
         return self._table
+
+    def _ensure_set(self):
+        tmp = set(self._keys)
+        if len(tmp) < len(self._keys):
+            self._keys.clear()
+            self._keys.extend(tmp)
+
+    @property
+    def table(self):
+        return self._get_table()
 
     def _get_key(self, index):
         if isinstance(index, str):
@@ -17,13 +29,17 @@ class One2many:
         return self._keys[index]
 
     def __getitem__(self, index):
-        return self._get_table()[self._get_key(index)]
+        return self.table[self._get_key(index)]
     
     def append(self, key):
-        self._keys.append(key)
+        if isinstance(key, record.Record):
+            key = key.key
+        if key not in self._keys:
+            self._keys.append(key)
     
     def __iter__(self):
-        return iter(self._keys)
+        for key in self._keys:
+            yield self[key]
 
     def __len__(self):
         return len(self._keys)
@@ -38,19 +54,8 @@ class One2many:
         )
 
     def keys(self):
-        return self._keys
+        return deepcopy(self._keys)
 
-    def list(self):
-        return [
-            self[k]
-            for k in self
-        ]
-
-    def dict(self):
-        return {
-            k: self[k]
-            for k in self
-        }
 
 
 # class Many2many(One2many):
