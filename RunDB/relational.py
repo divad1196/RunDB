@@ -1,7 +1,7 @@
-# from .record import Record
+from . import record
 
 class One2many:
-    def __init__(self, table, database=None, keys=[]):
+    def __init__(self, keys, table, database=None):
         self._table = table
         self._db = database
         self._keys = keys
@@ -11,15 +11,21 @@ class One2many:
             self._table = self._db[self._table]
         return self._table
 
+    @property
+    def table(self):
+        return self._get_table()
+
     def _get_key(self, index):
         if isinstance(index, str):
             return index
         return self._keys[index]
 
     def __getitem__(self, index):
-        return self._get_table()[self._get_key(index)]
+        return self.table[self._get_key(index)]
     
     def append(self, key):
+        if isinstance(key, record.Record):
+            key = key.key
         self._keys.append(key)
     
     def __iter__(self):

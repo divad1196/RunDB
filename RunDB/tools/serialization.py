@@ -2,7 +2,7 @@
 from typing import Union, List, Iterable, Callable
 import json
 import inspect
-
+from uuid import uuid4
 
 def func_keys(func):
     signature = inspect.signature(func)
@@ -42,14 +42,5 @@ def is_jsonable(obj):
     except Exception:
         return False
 
-def default_serializer(obj):
-    return obj
-
-def default_deserializer(obj):
-    return obj
-
 def get_random_id():
     return str(uuid4())
-
-def default_anonymous_key(obj):
-    return get_random_id()

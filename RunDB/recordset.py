@@ -5,7 +5,8 @@ from copy import deepcopy
 from .tools.serialization import get_random_id
 
 class RecordSet:
-    def __init__(self, key="id", one2many={}):
+    def __init__(self, table, key="id", one2many={}):
+        self._table = table
         self._data = {}
         if not isinstance(key, str):
             raise Exception("key must be of type str")
@@ -24,7 +25,11 @@ class RecordSet:
         return key, copy
 
     def empty_copy(self):
-        return RecordSet(key=self._key, one2many=self._one2many)
+        return RecordSet(
+            table=self._table,
+            key=self._key,
+            one2many=self._one2many
+        )
 
     def append(self, item):
         """
@@ -32,6 +37,7 @@ class RecordSet:
         """
         key, data = self._split_key_data(item)
         self[key] = data
+        return self[key]
     
     def update(self, record):
         """
@@ -54,15 +60,15 @@ class RecordSet:
         """
         value = self._data.get(key, _sentinelle)
         if value is _sentinelle:
-            return Record(self, key, {})
-        return Record(self, key, deepcopy(value))
+            return Record(self._table, key, {}, one2many=self._one2many)
+        return Record(self._table, key, deepcopy(value), one2many=self._one2many)
 
     def __getitem__(self, key):
         value = self._data.get(key, _sentinelle)
         if value is _sentinelle:
             value = {}
             self._data[key] = {}
-        return Record(self, key, value)
+        return Record(self._table, key, value, one2many=self._one2many)
 
     def __setitem__(self, key, item):
         if isinstance(item, Record):
@@ -81,7 +87,7 @@ class RecordSet:
 
     def records(self):
         for key, value in self._data.items():
-            yield Record(self, key, value)
+            yield Record(self._table, key, value, one2many=self._one2many)
 
     def keys(self):
         return self._data.keys()

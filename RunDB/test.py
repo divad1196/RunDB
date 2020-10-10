@@ -4,57 +4,32 @@ from RunDB.tools.serialization import call_kwargs
 
 db_path = Path("testRunDB")
 db = RunDB.Database(db_path)
-User = db.table("user")
+User = db.table("user", key="login")
+
+u1 = User.append({"login": "paul"})
+u2 = User["Matthieu"]
+u3 = User["Thomas"]
+
+list(User.records())
+
+Group = db.table("group", key="name", one2many={"users": "user"})
+
+test= Group["test"]
+test.users.append(u1)
+
+
+
+
+
 
 res = User.filter(lambda d: isinstance(d, dict) and "36" in d["name"])
 db["test"]["new"] = {"name": "new data"}
 
-class User:
-    def __init__(self, name, password, admin=False, groups=[]):
-        self.name = name
-        self.pwd = password
-        self.admin = admin
-        self.groups = db.One2many("group", groups)
-
-def dict_to_user(obj):
-    return call_kwargs(User, obj)
-
-def user_to_dict(obj):
-    return {
-        "name": obj.name,
-        "password": obj.pwd,
-        "admin": obj.admin,
-    }
-
-class Group:
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-    def __repr__(self):
-        return "Group {name}".format(name=self.name)
-
-def dict_to_group(obj):
-    return call_kwargs(Group, obj)
-
-def group_to_dict(obj):
-    return {
-        "name": obj.name,
-        "value": obj.value,
-    }
-
-def group_default_key(obj):
-    return obj.name
-
 db.table(
     "user",
-    serializer=user_to_dict,
-    deserializer=dict_to_user,
 )
 db.table(
     "group",
-    serializer=group_to_dict,
-    deserializer=dict_to_group,
-    anonymous=group_default_key,
 )
 
 u = User("paul", "passWord", groups=["first", "other"])

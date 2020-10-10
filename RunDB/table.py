@@ -4,8 +4,9 @@ from copy import deepcopy
 from .recordset import RecordSet
 
 class Table(RecordSet):
-    def __init__(self, path: PathType, key="id", one2many={}):
-        super(Table, self).__init__(key=key, one2many={})
+    def __init__(self, path: PathType, database=None, **kw):
+        super(Table, self).__init__(table=self, **kw)
+        self._db = database
         self._path = ensure_path(path)
         self._name = self._path.stem
         ensure_valide_name(self._name)
