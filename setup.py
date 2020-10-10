@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='rundb',  
-    version='0.5',
+    version='0.6',
     author="Gallay David",
     author_email="davidtennis96@hotmail.com",
     description="A pseudo NoSQL database",

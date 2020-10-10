@@ -12,116 +12,73 @@ The main point of this library is to help the user on storing and loading data.
 * NoSql with tools to simulate relational
 * Table are all fully loaded when declared
 * Query are done using python
-* Data must be serializable, but no format is imposed: some data may be stored as dict, while other are mere strings
-  some utilities functions may expect specific values, but it is recommended to only store Dict[str, Any] with string as key
-* No Opinion, let user defines hooks
+* Data are dict, they all have a unique key as a string
 
 
+
+### Quick Overview
 
 ```python
 import RunDB
 from pathlib import Path
-
-db_path = Path("testRunDB")  # The folder containing the tables as json files
-
-db = RunDB.Database(db_path)  # This will create the folder if it is missing, then loading all tables
-User = db.table("user")  # Create or get table labeled as "user", it's file is called user.json
-User["hello"] = {"name": "World"}
-
-res = User.filter(lambda d: isinstance(d, dict) and "36" in d["name"])  # return a subtable as a dict
-
-new = {"name": "new data"}
-db["test"]["new"] = new
-new.update({"option": "some text"}) # This will also update the value in the database
-
-db.dump_all()  # Dump all tables
-
-```
-
-
-
-Nb: Database are simply Group of Table, We can register Tables from somewhere else or simply use a Table without Database object
-
-## Wrapping
-
-You may want to use custom object.
-
-```python
 from RunDB.tools.serialization import call_kwargs
 
-db = RunDB.Database(...)
+# Path to DB folder
+db_path = Path("testRunDB")
+# Create the Database instance
+db = RunDB.Database(db_path)
 
-class User:
-    def __init__(self, name, password, admin=False, groups=[]):
-        self.name = name
-        self.pwd = password
-        self.admin = admin
-        self.groups = db.One2many("group", groups)
+# Get or Create User table, specifying the key as login (default is "id")
+# The key is used to find, if not explicitly given, the database id
+User = db.table("user", key="login")
 
-def dict_to_user(obj):
-    return call_kwargs(User, obj)
-
-def user_to_dict(obj):
-    return {
-        "name": obj.name,
-        "password": obj.pwd,
-        "admin": obj.admin,
-    }
-
-class Group:
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-    def __repr__(self):
-        return "Group {name}".format(name=self.name)
-
-def dict_to_group(obj):
-    return call_kwargs(Group, obj)
-
-def group_to_dict(obj):
-    return {
-        "name": obj.name,
-        "value": obj.value,
-    }
-
-def group_default_key(obj):
-    return obj.name
-
-db.table(
-    "user",
-    # Both parameter below should use validator if needed, as pydantic, marshmallow, schema, cerberus, ...
-    serializer=user_to_dict,  # How to save an object
-    deserializer=dict_to_user,  # How return an object 
-)
-db.table(
+# Same for Group table
+Group = db.table(
     "group",
-    serializer=group_to_dict,
-    deserializer=dict_to_group,
-    anonymous=group_default_key,  # how to retrieve the object key with Table.append method
+    key="name",
+    one2many={"users": "user"}
 )
 
-u = User("paul", "passWord", groups=["first", "other"])
-g1 = Group("first", 5)
-g2 = Group("second", 9)
-g3 = Group("other", 7)
+# Create User 1
+u1 = User.append({"login": "paul"})  # With values
 
-db["user"][u.name] = u
-db["group"].append(g1)
-db["group"].append(g2)
-db["group"].append(g3)
+# without values, 
+u2 = User["Matthieu"]
+u3 = User["Thomas"]
 
-u.groups.list()
+u1.age = 18
+u2.age = 20
+u3.age = 18
+
+res = User.filter(lambda user: user.age == 20)
+
+list(User.records())
+
+
+test= Group["test"]
+test.users.append(u1)
+
+
+adminGroup = Group.append({
+    "name": "admin",  # as the table key is "name", name will be poped
+})
+
+
+db["test"]["new"] = {"name": "new data"}  # Quick insert
+
+# Check if record has attribute age
+"age" in u1  # True
+
+# Get a dict
+data = dict(u1.items())
 
 db.dump_all()
 ```
 
-
+Nb: Database are simply Group of Table, We can register Tables from somewhere else or simply use a Table without Database object
 
 
 
 ## Future
 
-* Abstract dump and loading
-* Define other dumps
 * improve relational
-* improve object mapping

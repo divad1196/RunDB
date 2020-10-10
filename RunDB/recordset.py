@@ -54,6 +54,12 @@ class RecordSet:
     def __bool__(self):
         return bool(self._data)
 
+    def __str__(self):
+        return str(list(self._data.keys()))
+
+    def __repr__(self):
+        return str(self)
+
     def get(self, key):
         """
             Same as [] operator but ensure that changing record value won't change value in recordset
@@ -64,6 +70,8 @@ class RecordSet:
         return Record(self._table, key, deepcopy(value), one2many=self._one2many)
 
     def __getitem__(self, key):
+        if not isinstance(key, str):
+            raise Exception("Indexation is not supported, use record's key")
         value = self._data.get(key, _sentinelle)
         if value is _sentinelle:
             value = {}
@@ -105,8 +113,8 @@ class RecordSet:
         if condition is None:
             condition = bool
         for rec in self:
-            if condition(value):
-                recordset[key] = rec._attributes
+            if condition(rec):
+                recordset[rec.key] = rec._attributes
         return recordset
 
     def __add__(self, recordset):
